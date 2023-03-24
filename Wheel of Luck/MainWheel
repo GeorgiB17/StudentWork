@@ -1,0 +1,189 @@
+	package SelectionWheel;
+	
+	import javax.swing.event.*;
+	import java.awt.event.*;
+	import org.apache.log4j.Logger;
+	import java.io.IOException;
+	import javax.swing.*;
+	import java.util.*;
+
+	/**
+	 *
+	 * @author st178041
+	 */
+	public class MainWheel {
+
+		static SelectionWheel wheel;
+		static JLabel labelSelection;
+		static JLabel labelAngle;
+		static JLabel labelSpeed;
+		static private final Logger logger = Logger.getLogger(MainWheel.class.getName());
+		static JLabel captionSelection = new JLabel("Selection:");
+        static JLabel captionSpeed = new JLabel("Speed:");
+		static JLabel captionAngle = new JLabel("Angle:");
+		static JButton buttonToggleDetails;
+		        
+		/**
+		 * The main method of the Wheel
+		 * It creates a list of strings and passes it to a newly created SelectionWheel instance.
+		 * Afterwards, in an infinite loop the method either waits for user actions or spins the
+		 * wheel, once the user pushed it with a mouse action.
+		 *
+		 * @param args  Command line Arguments are not used
+		 * @throws an Exception
+		 */
+		public static void main(String[] args)  {
+
+			int widhtWindow = 1000, heightWindow = 1000;
+
+			// Create the JFrame for the wheel
+			JFrame mainWindow = new JFrame();
+			mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+
+
+			ArrayList<String> listOfItems = null;
+			try {
+				listOfItems = ContentReader.importAListOfItems();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			// Create a new SelectionWheel instance and pass the just created list of movies
+			wheel = new SelectionWheel(listOfItems);
+			wheel.hasBorders(true);
+			wheel.setBounds(10, 10, 700, 700);
+
+			initializeMainWindow(mainWindow, widhtWindow, heightWindow);
+
+			updateSelectedString();
+			updateRotationAngle();
+			updateSpinSpeed();
+
+			
+
+			// This infinite main loop waits for the user to push the wheel, updates all labels,
+			// shows the resulting movie in a message dialog after the wheel has stopped spinning.
+			while(true) {
+
+				// Loop to update the labels while waiting for user action (push the wheel).
+				// Once the wheel is spinning, the loop will be exited.
+				do {
+					updateSelectedString();
+					updateRotationAngle();
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				} while (!wheel.isSpinning());
+
+				// Loop to update the labels while the wheel is spinning.
+				// Once the wheel has stopped spinning, the loop will be exited.
+				while(wheel.isSpinning())
+				{
+					updateSelectedString();
+					updateRotationAngle();
+					updateSpinSpeed();
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						logger.error(e);
+						e.printStackTrace();
+					}
+				}
+				updateSpinSpeed();
+				   logger.info("Wheel stopped with the message: '%s'".formatted(wheel.getSelectedString()));
+				// Show selected movie under the tick in a message dialog
+				JOptionPane.showMessageDialog(mainWindow, "Selection: " + wheel.getSelectedString());
+			}
+		}
+
+		/**
+		 * Update the spin speed label on the main window
+		 */
+		private static void updateSpinSpeed() {
+		     logger.debug("Spin-speed changed to %.2f".formatted(wheel.getSpinSpeed()));
+			labelSpeed.setText(Double.toString(wheel.getSpinSpeed()));
+		}
+
+		/**
+		 * Update the rotation angle label on the main window
+		 */
+		private static void updateRotationAngle() {
+			logger.debug("rotation-angle changed to %.2f".formatted(wheel.getRotationAngle()));
+			labelAngle.setText(Double.toString(wheel.getRotationAngle()));
+		}
+
+		/**
+		 * Update the selected string label on the main window
+		 */
+		private static void updateSelectedString() {
+			logger.debug("Selected string changed to '%s'".formatted(wheel.getSelectedString()));
+			// Populate the labels with their initial values
+			labelSelection.setText(wheel.getSelectedString());
+		}
+
+		private static void toggleWheelSpinDetails() {
+			
+			captionSpeed.setVisible(!captionSpeed.isVisible());
+			labelSpeed.setVisible(!labelSpeed.isVisible());
+			captionAngle.setVisible(!captionAngle.isVisible());
+		    labelAngle.setVisible(!labelAngle.isVisible());
+			captionSelection.setVisible(!captionSelection.isVisible());
+            labelSelection.setVisible(!labelSelection.isVisible());
+				
+				if (buttonToggleDetails.getText().equals("Show Details")) {
+		                   buttonToggleDetails.setText("Hide Details");
+			      } 
+			           else {
+			        	   buttonToggleDetails.setText("Show Details"); 
+			      }
+		
+		/**
+		 * Initializes the Main Window.
+		 * Creates labels on the JFrame to show current selection, rotation
+		 * angle and rotation speed of the wheel, then add them to the JFrame
+		 *
+		 */
+		
+		private static void initializeMainWindow(JFrame mainWindow, int mainWindowWidth, int mainWindowHeight) {
+			
+			// Create labels on the JFrame to show the current  rotation angle, selection,
+			// and rotation speed of the wheel, then add them to the created JFrame above
+			buttonToggleDetails = new JButton("Hide Details"); 
+		    buttonToggleDetails.setBounds(720, 90, 130, 30); 
+		    buttonToggleDetails.addActionListener(new ActionListener() { 
+		          public void actionPerformed(ActionEvent e) {   
+		              toggleWheelSpinDetails(); 
+		          } 
+		      }); 
+			
+			
+			JLabel captionSelection = new JLabel("Selection: ");
+			JLabel captionAngle = new JLabel("Angle: ");
+			JLabel captionSpeed = new JLabel("Speed: ");
+			labelSelection = new JLabel("(selection)");
+			labelAngle = new JLabel("(angle)");
+			labelSpeed = new JLabel("(speed)");
+			captionSelection.setBounds(720, 10, 100, 20);
+			labelSelection.setBounds(830, 10, 150, 20);
+			captionAngle.setBounds(720, 30, 100, 20);
+			labelAngle.setBounds(830, 30, 150, 20);
+			captionSpeed.setBounds(720, 50, 100, 20);
+			labelSpeed.setBounds(830, 50, 150, 20);
+			mainWindow.add(wheel);
+			mainWindow.add(captionSelection);
+			mainWindow.add(labelSelection);
+			mainWindow.add(captionAngle);
+			mainWindow.add(labelAngle);
+			mainWindow.add(captionSpeed);
+			mainWindow.add(labelSpeed);
+			mainWindow.setSize(mainWindowWidth, mainWindowHeight);
+			mainWindow.setLayout(null);
+			mainWindow.setVisible(true);
+		}
+
+		
+		
+	}
