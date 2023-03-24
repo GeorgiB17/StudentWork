@@ -1,0 +1,88 @@
+package de.unistuttgart.iste.sqa.pse.sheet06.homework.exercise1;
+
+import de.hamstersimulator.objectsfirst.external.simple.game.SimpleHamsterGame;
+
+/**
+ * @author Silas Klein
+ * @author Yves Gassmann
+ * @author Georgi Bozhilski
+ * @version 03-12-2021
+ * 
+ * With this class Paule runs in a spiral and puts grains down.
+ * This works if the territory is a square.
+ * The spiral is laid with 1 field space between the grain fields.
+ */
+public class PainterPauleHamsterGame extends SimpleHamsterGame {
+
+	/**
+	 * Creates a new PainterPauleHamsterGame.<br>
+	 * Do not modify!
+	 */
+	public PainterPauleHamsterGame() {
+		this.loadTerritoryFromResourceFile("/territories/PainterPauleTerritory.ter");
+		this.displayInNewGameWindow();
+		game.startGame();
+	}
+
+	/**
+	 * This method defines how long paule has to go in a spiral
+	 * @requires game > 0; is initialized
+	 * @ensures paule.mouthEmpty()
+	 */
+	@Override
+	protected void run() {
+		// insert your code here		
+		int fieldCount = game.getTerritory().getTerritorySize().getRowCount() - 2;
+		
+		paule.putGrain();
+		
+		// First 3 iterations along the wall, 8 fields
+		for (int i = 0; i < 3; i++) {
+			runAndDrop(fieldCount);
+		}
+
+		/**
+		 * As long as you can substract 2 fields from the field number(field with grain and space), Paule will move and drop
+		 */		
+		while (fieldCount >= 1) {
+			
+			fieldCount -= 2;
+			
+			if(fieldCount <=1) {
+				break;
+			}
+			
+			for (int i = 0; i < 2; i++) {
+				runAndDrop(fieldCount);
+			}			
+		}
+	}
+
+	/**
+	 * For a number of fields, atleast 1 Paule has to go and drop grains
+	 * @param fields = number of fields
+	 * @requires fields > 0
+	 * @ensures old(game.getTerritory().getTotalGrainCount()) < game.getTerritory().getTotalGrainCount()
+	 */
+	private void runAndDrop(int fields) {
+		
+		// Verifies that fields is bigger than 0
+		if(fields < 1) {
+			return;
+		}
+		
+		// 0 < counter < fields 
+		for (int counter=1; counter<fields; counter++) {
+		
+			if(paule.frontIsClear() && !paule.mouthEmpty()) {
+				paule.move();
+				paule.putGrain();			
+			}	
+			else {
+				return;
+			}
+		}
+		
+		paule.turnLeft();
+	}
+}
